@@ -1,5 +1,5 @@
 //
-//  WhatsAppShare.h
+//  GmailShare.h
 //  RNShare
 //
 //  Created by Diseño Uno BBCL on 23-07-16.
@@ -13,8 +13,8 @@
 #import <React/RCTLog.h>
 #import <React/RCTUtils.h>
 
-@interface WhatsAppShare : NSObject <RCTBridgeModule>
+@interface GmailShare : NSObject <RCTBridgeModule>
 
-- (void *) shareSingle:(NSString *)message failureCallback:(RCTResponseErrorBlock)failureCallback successCallback:(RCTResponseSenderBlock)successCallback;
+- (void *) shareSingle:(NSString *)subject message:(NSString *) message failureCallback:(RCTResponseErrorBlock)failureCallback successCallback:(RCTResponseSenderBlock)successCallback;
 
 @end

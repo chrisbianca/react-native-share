@@ -1,5 +1,5 @@
 //
-//  WhatsAppShare.h
+//  SMSShare.h
 //  RNShare
 //
 //  Created by Diseño Uno BBCL on 23-07-16.
@@ -13,7 +13,7 @@
 #import <React/RCTLog.h>
 #import <React/RCTUtils.h>
 
-@interface WhatsAppShare : NSObject <RCTBridgeModule>
+@interface SMSShare : NSObject <RCTBridgeModule>
 
 - (void *) shareSingle:(NSString *)message failureCallback:(RCTResponseErrorBlock)failureCallback successCallback:(RCTResponseSenderBlock)successCallback;
 
