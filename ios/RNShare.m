@@ -7,6 +7,7 @@
 #import <React/RCTUIManager.h>
 
 #import "EmailShare.h"
+#import "FBMessengerShare.h"
 #import "GenericShare.h"
 #import "GmailShare.h"
 #import "GooglePlusShare.h"
@@ -27,7 +28,7 @@ RCT_EXPORT_METHOD(shareSingle:(NSDictionary *)options
     NSString *subject = [[RCTConvert NSString:options[@"subject"]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSString *text = [[[RCTConvert NSString:options[@"message"]] stringByAppendingString:@" "] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSString *url = [[[RCTConvert NSString:options[@"url"]] stringByReplacingOccurrencesOfString:@"?" withString:@"%3F"] stringByReplacingOccurrencesOfString:@"=" withString:@"%3D"];
-    
+
     NSString *message;
     if (url == nil) {
         message = text;
@@ -36,9 +37,9 @@ RCT_EXPORT_METHOD(shareSingle:(NSDictionary *)options
     } else {
         message = [text stringByAppendingString:url];
     }
-    
+
     NSString *social = [RCTConvert NSString:options[@"social"]];
-    
+
     if (social) {
         NSLog(social);
         if([social isEqualToString:@"facebook"]) {
@@ -69,6 +70,10 @@ RCT_EXPORT_METHOD(shareSingle:(NSDictionary *)options
             NSLog(@"TRY OPEN sms");
             SMSShare *shareCtl = [[SMSShare alloc] init];
             [shareCtl shareSingle:message failureCallback:failureCallback successCallback:successCallback];
+        } else if ([social isEqualToString:@"fb-messenger"]) {
+            NSLog(@"TRY OPEN fb-messenger");
+            FBMessengerShare *shareCtl = [[FBMessengerShare alloc] init];
+            [shareCtl shareSingle:url failureCallback:failureCallback successCallback:successCallback];
         }
     } else {
         RCTLogError(@"No exists social key");
