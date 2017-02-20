@@ -18,45 +18,63 @@ import cl.json.ShareFile;
 /**
  * Created by disenodosbbcl on 23-07-16.
  */
-public abstract class SingleShareIntent extends ShareIntent {
+public class SingleShareIntent {
+    private ReactApplicationContext context;
+    private String packageName;
+    private String playStoreURL;
 
-
-
-
-    protected String playStoreURL = null;
-    protected String appStoreURL = null;
-
-    public SingleShareIntent(ReactApplicationContext reactContext) {
-        super(reactContext);
+    public SingleShareIntent(ReactApplicationContext context, String packageName,
+                             String playStoreURL) {
+        this.context = context;
+        this.packageName = packageName;
+        this.playStoreURL = playStoreURL;
     }
 
-    public void open(ReadableMap options) throws ActivityNotFoundException {
-        System.out.println(getPackage());
-        //  check if package is installed
-        if(getPackage() != null || getDefaultWebLink() != null || getPlayStoreLink() != null) {
-            if(this.isPackageInstalled(getPackage(), reactContext)) {
-                System.out.println("INSTALLED");
-                this.getIntent().setPackage(getPackage());
-                //  configure default
-                super.open(options);
-            } else {
-                System.out.println("NOT INSTALLED");
-                String url = "";
-                if(getDefaultWebLink() != null) {
-                    url = getDefaultWebLink()
-                            .replace("{url}",       this.urlEncode( options.getString("url") ) )
-                            .replace("{message}",   this.urlEncode( options.getString("message") ));
-                } else if(getPlayStoreLink() != null) {
-                    url = getPlayStoreLink();
-                } else{
-                    //  TODO
-                }
-                //  open web intent
-                this.setIntent(new Intent(new Intent("android.intent.action.VIEW", Uri.parse(url))));
+    public void open(String message) throws ActivityNotFoundException {
+        this.open(null, message, null);
+    }
+
+    public void openUrl(String url) throws ActivityNotFoundException {
+        this.open(null, null, url);
+    }
+
+    public void open(String subject, String message) throws ActivityNotFoundException {
+        this.open(subject, message, null);
+    }
+
+    public void open(String subject, String message, String url) throws ActivityNotFoundException {
+        Intent intent;
+        if (isPackageInstalled(packageName)) {
+            intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.setPackage(packageName);
+
+            if (subject != null) {
+                intent.putExtra(Intent.EXTRA_SUBJECT, subject);
             }
+            if (message != null) {
+                intent.putExtra(Intent.EXTRA_TEXT, message);
+            }
+            if (url != null) {
+                intent.putExtra(Intent.EXTRA_TEXT, url);
+            }
+        } else if (playStoreURL != null) {
+            intent = new Intent(Intent.ACTION_VIEW, Uri.parse(playStoreURL));
         } else {
-            //  configure default
-            super.open(options);
+            throw new ActivityNotFoundException();
+        }
+
+        Intent chooser = Intent.createChooser(intent, "Share");
+        chooser.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        this.context.startActivity(chooser);
+    }
+
+    private boolean isPackageInstalled(String packageName) {
+        try {
+            context.getPackageManager().getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
     }
 }

@@ -1,8 +1,7 @@
 package cl.json;
 
-import android.content.Intent;
 import android.content.ActivityNotFoundException;
-import android.net.Uri;
+import android.provider.Telephony;
 import android.support.annotation.Nullable;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -10,32 +9,13 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Callback;
 
-import java.sql.SQLOutput;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import cl.json.social.EmailShare;
-import cl.json.social.FacebookShare;
 import cl.json.social.GenericShare;
-import cl.json.social.GooglePlusShare;
-import cl.json.social.ShareIntent;
-import cl.json.social.TwitterShare;
-import cl.json.social.WhatsAppShare;
+import cl.json.social.SingleShareIntent;
 
 public class RNShareModule extends ReactContextBaseJavaModule {
 
-    private final ReactApplicationContext reactContext;
-    private HashMap<String, ShareIntent> sharesExtra = new HashMap<String, ShareIntent>();
     public RNShareModule(ReactApplicationContext reactContext) {
         super(reactContext);
-        this.reactContext = reactContext;
-        sharesExtra.put("generic", new GenericShare(this.reactContext));
-        sharesExtra.put("facebook", new FacebookShare(this.reactContext));
-        sharesExtra.put("twitter", new TwitterShare(this.reactContext));
-        sharesExtra.put("whatsapp",new WhatsAppShare(this.reactContext));
-        sharesExtra.put("googleplus",new GooglePlusShare(this.reactContext));
-        sharesExtra.put("email",new EmailShare(this.reactContext));
-        //  add more customs single intent shares here
     }
 
     @Override
@@ -46,29 +26,74 @@ public class RNShareModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void open(ReadableMap options, @Nullable Callback failureCallback, @Nullable Callback successCallback) {
         try{
-            GenericShare share = new GenericShare(this.reactContext);
+            GenericShare share = new GenericShare(this.getReactApplicationContext());
             share.open(options);
             successCallback.invoke("OK");
         }catch(ActivityNotFoundException ex) {
-            System.out.println("ERROR");
-            System.out.println(ex.getMessage());
             failureCallback.invoke("not_available");
         }
     }
     @ReactMethod
     public void shareSingle(ReadableMap options, @Nullable Callback failureCallback, @Nullable Callback successCallback) {
-        System.out.println("SHARE SINGLE METHOD");
-        if (ShareIntent.hasValidKey("social", options) ) {
-            try{
-                this.sharesExtra.get(options.getString("social")).open(options);
-                successCallback.invoke("OK");
-            }catch(ActivityNotFoundException ex) {
-                System.out.println("ERROR");
-                System.out.println(ex.getMessage());
-                failureCallback.invoke(ex.getMessage());
+        try {
+            String social = options.getString("social");
+            if (social == null) {
+                failureCallback.invoke("Options must include a 'social' key");
+                return;
             }
-        } else {
-            failureCallback.invoke("no exists social key");
+
+            String subject = extractKey(options, "subject");
+            String message = extractKey(options, "message");
+            String url = extractKey(options, "url");
+
+            if (url != null && message !=null && message.contains("--url--")) {
+                message.replace("--url--", url);
+            } else if (url != null && message != null) {
+                message = message + " " + url;
+            } else if (url != null) {
+                message = url;
+            }
+
+            SingleShareIntent shareIntent;
+            if ("facebook".equals(social)) {
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), "com.facebook.katana", null);
+                shareIntent.open(message);
+            } else if ("twitter".equals(social)) {
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), "com.twitter", null);
+                shareIntent.open(message);
+            } else if ("googleplus".equals(social)) {
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), "com.google.android.apps.plus", null);
+                shareIntent.open(message);
+            } else if ("whatsapp".equals(social)) {
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), "com.whatsapp", null);
+                shareIntent.open(message);
+            } else if ("email".equals(social)) {
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), "com.android.email", null);
+                shareIntent.open(subject, message);
+            } else if ("gmail".equals(social)) {
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), "com.google.android.gm", null);
+                shareIntent.open(subject, message);
+            } else if ("sms".equals(social)) {
+                String packageName = Telephony.Sms.getDefaultSmsPackage(this.getReactApplicationContext());;
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), packageName, null);
+                shareIntent.open(message);
+            } else if ("fb-messenger".equals(social)) {
+                shareIntent = new SingleShareIntent(this.getReactApplicationContext(), "com.facebook.orca", null);
+                shareIntent.open(message);
+            } else {
+                failureCallback.invoke("Invalid 'social' key");
+                return;
+            }
+            successCallback.invoke("OK");
+        } catch (ActivityNotFoundException ex) {
+            failureCallback.invoke(ex.getMessage());
         }
+    }
+
+    private String extractKey(ReadableMap options, String key) {
+        if (options.hasKey(key) && !options.isNull(key)) {
+            return options.getString(key);
+        }
+        return null;
     }
 }
