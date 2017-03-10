@@ -46,8 +46,8 @@ public class RNShareModule extends ReactContextBaseJavaModule {
             String message = extractKey(options, "message");
             String url = extractKey(options, "url");
 
-            if (url != null && message !=null && message.contains("--url--")) {
-                message.replace("--url--", url);
+            if (url != null && message != null && message.contains("--url--")) {
+                message = message.replace("--url--", url);
             } else if (url != null && message != null) {
                 message = message + " " + url;
             } else if (url != null) {
