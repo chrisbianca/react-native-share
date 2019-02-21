@@ -9,6 +9,7 @@
 #import "FBMessengerShare.h"
 
 @implementation FBMessengerShare
+RCT_EXPORT_MODULE();
 - (void)shareSingle:(NSString *)url
     failureCallback:(RCTResponseErrorBlock)failureCallback
     successCallback:(RCTResponseSenderBlock)successCallback {

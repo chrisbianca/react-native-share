@@ -9,6 +9,7 @@
 #import "EmailShare.h"
 
 @implementation EmailShare
+RCT_EXPORT_MODULE();
 - (void)shareSingle:(NSString *)subject
             message:(NSString *)message
     failureCallback:(RCTResponseErrorBlock)failureCallback

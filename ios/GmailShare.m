@@ -9,6 +9,7 @@
 #import "GmailShare.h"
 
 @implementation GmailShare
+RCT_EXPORT_MODULE();
 - (void)shareSingle:(NSString *)subject
             message:(NSString *)message
     failureCallback:(RCTResponseErrorBlock)failureCallback

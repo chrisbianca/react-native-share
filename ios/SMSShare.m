@@ -9,6 +9,7 @@
 #import "SMSShare.h"
 
 @implementation SMSShare
+RCT_EXPORT_MODULE();
 - (void)shareSingle:(NSString *)message
     failureCallback:(RCTResponseErrorBlock)failureCallback
     successCallback:(RCTResponseSenderBlock)successCallback {

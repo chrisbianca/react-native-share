@@ -9,6 +9,7 @@
 #import "WhatsAppShare.h"
 
 @implementation WhatsAppShare
+RCT_EXPORT_MODULE();
 - (void)shareSingle:(NSString *)message
     failureCallback:(RCTResponseErrorBlock)failureCallback
     successCallback:(RCTResponseSenderBlock)successCallback {
